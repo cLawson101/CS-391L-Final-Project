@@ -6,6 +6,51 @@ import numpy as np
 import pandas as pd
 
 
+def stations_wban(
+    path=None,
+    save_csv=True
+):
+    """
+    WBAN, stations metdata set from .txt file
+
+    Parameters
+    __________
+    path : str, default None
+        Path to .txt file
+    save_csv : bool, default True
+        Should .csv be saved for later refernce
+
+    Returns
+    _______
+    DataFrame
+        Stations metadata
+    """
+
+    if path:
+        raw_data = pd.read_fwf(
+            filepath_or_buffer=path,
+            header=None,
+            colspecs=[(22, 28), (50, 71), (71, 74), (74, 105), (111, 142), (142, 173)]
+        )[1:]
+    else:
+        raw_data = pd.read_fwf(
+            filepath_or_buffer=f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/noaa/mshr_standard.txt",
+            header=None,
+            colspecs=[(22, 28), (50, 71), (71, 74), (74, 105), (111, 142), (142, 173)]
+        )[1:]
+
+    stations_wban = raw_data
+    stations_wban.columns = ['WBAN', 'COUNTRY', 'STATE', 'CITY', 'NAME_1', 'NAME_2']
+
+    if save_csv:
+        stations_wban.to_csv(
+            path_or_buf=f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/noaa/stations_wban.csv",
+            index=False
+        )
+
+    return raw_data
+
+
 def climate_data_etl(
     path    
 ):
@@ -23,100 +68,55 @@ def climate_data_etl(
         Clean NOAA climate data
     """
 
-    raw_data = pd.read_csv(filepath_or_buffer=path)
+    raw_data = pd.read_csv(
+        filepath_or_buffer=path
+    )
+    try:
+        stations_wban = pd.read_csv(
+            filepath_or_buffer=f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/noaa/stations_wban.csv",
+        )
+    except FileNotFoundError:
+        stations_wban = stations_wban()  # slower to infer fixed width text columns
 
     hourly_raw_data = raw_data.loc[
-        raw_data.reportType == 'FM-15'  # select hourly reporting
+        raw_data.REPORT_TYPE == 'FM-15'  # select hourly reporting
     ]
+    hourly_raw_data['WBAN'] = [int(str(_)[-5:]) for _ in hourly_raw_data.STATION]
+    hourly_raw_data = hourly_raw_data.merge(stations_wban, how='left', on='WBAN')
 
     hourly_raw_data = hourly_raw_data[[  # filter useful columns
-        'STATION', 
-        'STATION_NAME', 
-        'ELEVATION', 
-        'LATITUDE', 
-        'LONGITUDE', 
-        'DATE', 
-        # 'reportType', 
-        # 'HourlySkyConditions', 
-        # 'HourlyVisibility', 
-        # 'HourlyPresentWeatherType', 
-        'HourlyDryBulbTemperatureF', 
-        # 'HourlyDryBulbTemperatureC', 
-        # 'HourlyWetBulbTemperatureF', 
-        # 'HourlyWetBulbTemperatureC', 
-        'HourlyDewPointTemperatureF', 
-        # 'HourlyDewPointTemperatureC', 
-        'HourlyRelativeHumidity', 
-        # 'HourlyWindSpeed', 
-        # 'HourlyWindDirection', 
-        # 'HourlyWindGustSpeed', 
-        'HourlyStationPressure', 
-        'HourlyPressureTendency',  # prev 3 hrs: 0-3 increase, 5-8 decrease,  4 no change 
-        'HourlyPressureChange',  # 
-        # 'HourlySeaLevelPressure', 
-        'HourlyPrecipitation',  # precip in inches to hundredths over past hour, “T” trace amount
-        # 'HourlyAltimeterSetting', 
-        # 'DailyMaximumDryBulbTemperature', 
-        # 'DailyMinimumDryBulbTemperature', 
-        # 'DailyAverageDryBulbTemperature', 
-        # 'DailyDepartureFromNormalAverageTemperature', 
-        # 'DailyAverageRelativeHumidity', 
-        # 'DailyAverageDewPointTemperature', 
-        # 'DailyAverageWetBulbTemperature', 
-        # 'DailyHeatingDegreeDays', 
-        # 'DailyCoolingDegreeDays', 
-        # 'DailySunrise', 
-        # 'DailySunset', 
-        # 'DailyPrecipitation', 
-        # 'DailySnowfall', 
-        # 'DailySnowDepth', 
-        # 'DailyAverageStationPressure', 
-        # 'DailyAverageSeaLevelPressure', 
-        # 'DailyAverageWindSpeed', 
-        # 'DailyPeakWindSpeed', 
-        # 'PeakWindDirection', 
-        # 'DailySustainedWindSpeed', 
-        # 'DailySustainedWindDirection', 
-        # 'MonthlyMaximumTemperature', 
-        # 'MonthlyMinimumTemperature', 
-        # 'MonthlyMeanTemperature', 
-        # 'MonthlyAverageRH', 
-        # 'MonthlyDewpointTemperature', 
-        # 'MonthlyWetBulb', 
-        # 'MonthlyHeatingDegreeDays', 
-        # 'MonthlyCoolingDegreeDays', 
-        # 'MonthlyStationPressure', 
-        # 'MonthlySeaLevelPressure', 
-        # 'MonthlyAverageWindSpeed', 
-        # 'MonthlyTotalSnowfall', 
-        # 'MonthlyDepartureFromNormalMaximumTemperature', 
-        # 'MonthlyDepartureFromNormalMinimumTemperature', 
-        # 'MonthlyDepartureFromNormalAverageTemperature', 
-        # 'MonthlyDepartureFromNormalPrecipitation', 
-        # 'MonthlyTotalLiquidPrecipitation', 
-        # 'MonthlyGreatestPrecip', 
-        # 'MonthlyGreatestPrecipDate', 
-        # 'MonthlyGreatestSnowfall', 
-        # 'MonthlyGreatestSnowfallDate', 
-        # 'MonthlyGreatestSnowDepth', 
-        # 'MonthlyGreatestSnowDepthDate', 
-        # 'MonthlyDaysWithGT90Temp', 
-        # 'MonthlyDaysWithLT32Temp', 
-        # 'MonthlyDaysWithGT32Temp', 
-        # 'MonthlyDaysWithLT0Temp', 
-        # 'MonthlyDaysWithGT001Precip', 
-        # 'MonthlyDaysWithGT010Precip', 
-        # 'MonthlyMaxSeaLevelPressureValue', 
-        # 'MonthlyMaxSeaLevelPressureValueDate', 
-        # 'MonthlyMaxSeaLevelPressureValueTime', 
-        # 'MonthlyMinSeaLevelPressureValue', 
-        # 'MonthlyMinSeaLevelPressureValueDate', 
-        # 'MonthlyMinSeaLevelPressureValueTime', 
-        # 'MonthlyTotalHeatingDegreeDays', 
-        # 'MonthlyTotalCoolingDegreeDays', 
-        # 'MonthlyDepartureFromNormalHeatingDD', 
-        # 'MonthlyDepartureFromNormalCoolingDD'
+        'STATION',
+        'WBAN',
+        'DATE',
+        'COUNTRY',
+        'STATE',
+        'CITY',
+        'NAME_1',
+        'NAME_2',
+        'BackupName',
+        'BackupLatitude',
+        'BackupLongitude',
+        'HourlyDewPointTemperature',
+        'HourlyDryBulbTemperature',
+        'HourlyPrecipitation',
+        'HourlyPressureChange',
+        'HourlyPressureTendency',
+        'HourlyRelativeHumidity',
     ]]
+    hourly_raw_data.rename({
+        'BackupLatitude': 'LATITUDE',
+        'BackupLongitude': 'LONGITUDE',
+        'BackupName': 'BACKUP_NAME',
+        'HourlyDewPointTemperature': 'DEW_POINT_TEMPERATURE',
+        'HourlyDryBulbTemperature': 'DRY_BULB_TEMPERATURE',
+        'HourlyPrecipitation': 'PRECIPITATION',
+        'HourlyPressureChange': 'PRESSURE_CHANGE',
+        'HourlyPressureTendency': 'PRESSURE_TENDENCY',
+        'HourlyRelativeHumidity': 'RELATIVE_HUMIDITY'
+        }, 
+        axis=1, 
+        inplace=True
+    )
 
     hourly_raw_data['DATE'] = pd.to_datetime(hourly_raw_data['DATE'])
     hourly_raw_data['YEAR'] = [_.year for _ in hourly_raw_data['DATE']]
