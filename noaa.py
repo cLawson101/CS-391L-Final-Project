@@ -69,11 +69,13 @@ def climate_data_etl(
     """
 
     raw_data = pd.read_csv(
-        filepath_or_buffer=path
+        filepath_or_buffer=path, 
+        low_memory=False
     )
     try:
         stations_wban = pd.read_csv(
             filepath_or_buffer=f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/noaa/stations_wban.csv",
+            low_memory=False
         )
     except FileNotFoundError:
         stations_wban = stations_wban()  # slower to infer fixed width text columns
@@ -81,7 +83,8 @@ def climate_data_etl(
     hourly_raw_data = raw_data.loc[
         raw_data.REPORT_TYPE == 'FM-15'  # select hourly reporting
     ]
-    hourly_raw_data['WBAN'] = [int(str(_)[-5:]) for _ in hourly_raw_data.STATION]
+    with pd.option_context('mode.chained_assignment', None):
+        hourly_raw_data['WBAN'] = [int(str(_)[-5:]) for _ in hourly_raw_data.STATION]
     hourly_raw_data = hourly_raw_data.merge(stations_wban, how='left', on='WBAN')
 
     hourly_raw_data = hourly_raw_data[[  # filter useful columns
