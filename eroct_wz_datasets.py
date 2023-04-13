@@ -61,3 +61,38 @@ south_central_wz = south_central_wz.merge(
     noaa_ksat[noaa_select_attributes_plus].rename({_: f"{_}_KSAT" for _ in noaa_select_attributes}, axis=1), 
     how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
 )
+
+# Assemble a dataset for North WZ
+
+north_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'NORTH']].merge(
+    noaa_kama[noaa_select_attributes_plus].rename({_: f"{_}_KAMA" for _ in noaa_select_attributes}, axis=1), 
+    how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
+
+# Assemble a dataset for North Central WZ
+
+north_central_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'NCENT']].merge(
+    noaa_kdfw[noaa_select_attributes_plus].rename({_: f"{_}_kdfw" for _ in noaa_select_attributes}, axis=1), 
+    how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
+
+# Assemble a dataset for Central WZ
+    
+coast_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'COAST']].merge(
+    noaa_kiah[noaa_select_attributes_plus].rename({_: f"{_}_KIAH" for _ in noaa_select_attributes}, axis=1), 
+    how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
+
+# Assemble a dataset for Far West WZ
+    
+far_west_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'FWEST']].merge(
+    noaa_kmaf[noaa_select_attributes_plus].rename({_: f"{_}_KMAF" for _ in noaa_select_attributes}, axis=1), 
+    how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
+
+# Assemble a dataset for South WZ
+    
+south_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'SOUTH']].merge(
+    noaa_khrl[noaa_select_attributes_plus].rename({_: f"{_}_KHRL" for _ in noaa_select_attributes}, axis=1), 
+    how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
