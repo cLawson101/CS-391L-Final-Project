@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 
 def round_down(item):
+    if str(type(item)) == "<class 'datetime.datetime'>":
+        return str(item)
     idx = item.find("24:00")
     if idx >= 0:
         item = item[:idx] + "23:59"
@@ -27,16 +29,18 @@ def ercot_data(
     DataFrame
         cleaner ERCOT data
     """
-
     df = pd.read_excel(path)
     
     # Removing the ERCOT value as it is just the sum
-    df = df[df.columns[:-1]]
+    df = df[df.columns[:-1]]   
     if "Hour_End" in df.columns:
         df["DATE"] = pd.to_datetime(df["Hour_End"])
     elif "HourEnding" in df.columns:
         df["HourEnding"] = df["HourEnding"].apply(round_down)
         df["DATE"] = pd.to_datetime(df["HourEnding"])
+    elif "Hour Ending" in df.columns:
+        df["Hour Ending"] = df["Hour Ending"].apply(round_down)
+        df["DATE"] = pd.to_datetime(df["Hour Ending"])
     df["YEAR"] = [_.year for _ in df["DATE"]]
     df["MONTH"] = [_.month for _ in df["DATE"]]
     df["DAY"] = [_.day for _ in df["DATE"]]

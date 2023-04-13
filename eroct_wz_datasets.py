@@ -33,13 +33,18 @@ noaa_tx_data = pd.concat([
 
 ercot_base_path = f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/ERCOT/"
 
-ercot_tx_years = dict()
-for year in np.arange(2012, 2023): 
-    try:
-        ercot_tx_years[year] = ercot_data(path=f"{ercot_base_path}Native_Load_{year}.xlsx")
-    except FileNotFoundError:
-        ercot_tx_years[year] = ercot_data(path=f"{ercot_base_path}Native_Load_{year}.xls")
+ercot_tx_years_first = [
+    ercot_data(path=f"{ercot_base_path}Native_Load_{year}.xls")
+    for year in np.arange(2012, 2016)
+]
 
-eroct_tx_data = pd.concat([ercot_tx_years.values()])
+ercot_tx_years_second = [
+    ercot_data(path=f"{ercot_base_path}Native_Load_{year}.xlsx")
+    for year in np.arange(2016, 2023)
+]
+
+ercot_tx_years_total = ercot_tx_years_first + ercot_tx_years_second
+
+eroct_tx_data = pd.concat(ercot_tx_years_total)
 
 # Assemble a dataset for South Central WZ
