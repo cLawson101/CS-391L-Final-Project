@@ -29,6 +29,10 @@ noaa_tx_data = pd.concat([
     noaa_kama 
 ])
 
+noaa_select_attributes = ['DEW_POINT_TEMPERATURE', 'DRY_BULB_TEMPERATURE', 'PRECIPITATION', 
+    'PRESSURE_CHANGE', 'PRESSURE_TENDENCY', 'RELATIVE_HUMIDITY']
+noaa_select_attributes_plus = noaa_select_attributes + ['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+
 # Load ERCOT load data
 
 ercot_base_path = f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/ERCOT/"
@@ -45,6 +49,15 @@ ercot_tx_years_second = [
 
 ercot_tx_years_total = ercot_tx_years_first + ercot_tx_years_second
 
-eroct_tx_data = pd.concat(ercot_tx_years_total)
+eroct_tx_data = pd.concat(ercot_tx_years_total, sort=True)
 
 # Assemble a dataset for South Central WZ
+
+south_central_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'SOUTH_C']].merge(
+    noaa_kaus[noaa_select_attributes_plus].rename({_: f"{_}_KAUS" for _ in noaa_select_attributes}, axis=1), 
+    how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
+south_central_wz = south_central_wz.merge(
+    noaa_ksat[noaa_select_attributes_plus].rename({_: f"{_}_KSAT" for _ in noaa_select_attributes}, axis=1), 
+    how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
