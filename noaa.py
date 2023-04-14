@@ -79,12 +79,15 @@ def climate_data_etl(
         )
     except FileNotFoundError:
         stations_wban = stations_wban()  # slower to infer fixed width text columns
+    stations_wban = stations_wban.loc[~stations_wban.WBAN.isna()]
+    stations_wban = stations_wban.drop_duplicates(subset='WBAN', keep='last').reset_index(drop=True)  # take last WBAN
 
     hourly_raw_data = raw_data.loc[
         raw_data.REPORT_TYPE == 'FM-15'  # select hourly reporting
     ]
     with pd.option_context('mode.chained_assignment', None):
         hourly_raw_data['WBAN'] = [int(str(_)[-5:]) for _ in hourly_raw_data.STATION]
+    stations_wban = stations_wban.loc[stations_wban.WBAN.isin(hourly_raw_data.WBAN.unique())]
     hourly_raw_data = hourly_raw_data.merge(stations_wban, how='left', on='WBAN')
 
     hourly_raw_data = hourly_raw_data[[  # filter useful columns
