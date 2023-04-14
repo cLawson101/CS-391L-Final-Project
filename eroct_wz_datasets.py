@@ -29,8 +29,14 @@ noaa_tx_data = pd.concat([
     noaa_kama 
 ])
 
-noaa_select_attributes = ['DEW_POINT_TEMPERATURE', 'DRY_BULB_TEMPERATURE', 'PRECIPITATION', 
-    'PRESSURE_CHANGE', 'PRESSURE_TENDENCY', 'RELATIVE_HUMIDITY']
+noaa_select_attributes = [
+    'DRY_BULB_TEMPERATURE', 
+    'DEW_POINT_TEMPERATURE',  # possibly superfluous with rel hum
+    'RELATIVE_HUMIDITY',  # possibly superfluous with dew pt temp
+    'PRECIPITATION',  # handle 'T' values?
+    'PRESSURE_CHANGE',  # handle NaN values?
+    'PRESSURE_TENDENCY',  # handle NaN values?
+]
 noaa_select_attributes_plus = noaa_select_attributes + ['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
 
 # Load ERCOT load data
