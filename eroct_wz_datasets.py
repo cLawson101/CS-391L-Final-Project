@@ -4,8 +4,12 @@ Assemble datasets for each relvant ERCOT Weather Zone (WZ)
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+
 from noaa import climate_data_etl
 from ercot import ercot_data
+
 
 # Load NOAA climate data
 
@@ -82,7 +86,7 @@ north_central_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'NCENT'
     how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
 )
 
-# Assemble a dataset for Central WZ
+# Assemble a dataset for Coast WZ
     
 coast_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'COAST']].merge(
     noaa_kiah[noaa_select_attributes_plus].rename({_: f"{_}_KIAH" for _ in noaa_select_attributes}, axis=1), 
@@ -101,4 +105,31 @@ far_west_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'FWEST']].me
 south_wz = eroct_tx_data[['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING', 'SOUTH']].merge(
     noaa_khrl[noaa_select_attributes_plus].rename({_: f"{_}_KHRL" for _ in noaa_select_attributes}, axis=1), 
     how='inner', on=['YEAR', 'MONTH', 'DAY', 'HOUR_ENDING']
+)
+
+# Write datasets for ease of use later
+
+pq.write_table(
+    pa.Table.from_pandas(south_central_wz), 
+    f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/south_central_wz.parquet"
+)
+pq.write_table(
+    pa.Table.from_pandas(north_wz), 
+    f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/north_wz.parquet"
+)
+pq.write_table(
+    pa.Table.from_pandas(north_central_wz), 
+    f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/north_central_wz.parquet"
+)
+pq.write_table(
+    pa.Table.from_pandas(coast_wz), 
+    f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/coast_wz.parquet"
+)
+pq.write_table(
+    pa.Table.from_pandas(far_west_wz), 
+    f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/far_west_wz.parquet"
+)
+pq.write_table(
+    pa.Table.from_pandas(south_wz), 
+    f"{__file__.split('CS-391L-Final-Project')[0]}/CS-391L-Final-Project/data/south_wz.parquet"
 )
