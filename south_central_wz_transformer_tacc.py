@@ -169,16 +169,26 @@ if __name__ == "__main__":
                            DROPOUT,
                            LR
                            ), end = "")
+        
+        avg_miss = 0.0
         epoch_loss = 0.0
+        avg_pred = 0.0
+        avg_target = 0.0
         for batch, (_input, target) in enumerate(train_dataloader):
             optimizer.zero_grad()
             src = _input.double()
             target = _input.double()
+
+            if target.shape[1] != training_length:
+                continue
             
             prediction = model(src)
+            avg_miss += np.mean(np.abs(prediction.detach().numpy() - target[:,:,-1].unsqueeze(-1).detach().numpy()))
+            avg_pred += np.mean(prediction.detach().numpy())
+            avg_target += np.mean(target[:,:,-1].unsqueeze(-1).detach().numpy())
             loss = criterion(prediction, target[:,:,-1].unsqueeze(-1))
             loss = torch.sqrt(loss)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.detach().item()
-        print("%4.4f" % (epoch_loss))
+        print("%d, %4.4f" % (epoch, epoch_loss / (batch + 1)))
