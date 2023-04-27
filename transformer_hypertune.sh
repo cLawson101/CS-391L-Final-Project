@@ -15,7 +15,7 @@ do
                         do
                             for bs in 1 128
                             do
-                                python south_centra_wz_transformer_tacc.py --max_epochs ${e} --lr ${lr} --num_layers ${nl}  --training_length ${tl} --forecast_window ${fw} --batch_size ${bs} --dropout ${d} --num_heads ${nh} >> transformer_hypertuning.csv
+                                python south_central_wz_transformer_tacc.py --max_epochs ${e} --lr ${lr} --num_layers ${nl}  --training_length ${tl} --forecast_window ${fw} --batch_size ${bs} --dropout ${d} --num_heads ${nh} >> transformer_hypertuning.csv
                             done
                         done
                     done
