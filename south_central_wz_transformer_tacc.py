@@ -25,11 +25,12 @@ def parse_args():
     parser.add_argument("--training_length", type=int, default = 24)
     parser.add_argument("--forecast_window", type=int, default = 24)
     parser.add_argument("--num_layers", type=int, default = 1)
-    parser.add_argument("--dropout", type=int, default = 0)
+    parser.add_argument("--num_heads", type=int, default = 1)
+    parser.add_argument("--dropout", type=float, default = 0.0)
     parser.add_argument("--batch_size", type=int, default = 1)
 
     # Optimizer Stuff
-    parser.add_argument('--lr', type=float, default=4e-4) # 8e-4
+    parser.add_argument('--lr', type=float, default=1e-4) # 8e-4
     
     config = parser.parse_args().__dict__
     return config
@@ -62,10 +63,10 @@ class TimeSeriesDataset(Dataset):
 
 class Transformer(nn.Module):
     # d_model : number of features
-    def __init__(self,feature_size=5,num_layers=3,dropout=0):
+    def __init__(self,feature_size=5,num_layers=3,dropout=0,nheads=5):
         super(Transformer, self).__init__()
 
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=1, dropout=dropout)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=nheads, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)        
         self.decoder = nn.Linear(feature_size,1)
         self.init_weights()
@@ -88,7 +89,6 @@ class Transformer(nn.Module):
 
 if __name__ == "__main__":
     config = parse_args()
-    
     south_central_wz = pq.read_table(f"data/south_central_wz.parquet").to_pandas()
 
     lim = south_central_wz[[
@@ -132,7 +132,6 @@ if __name__ == "__main__":
 
     X = lim[features]
     y = lim[["SOUTH_C"]]
-
     train_X, test_X, train_y, test_y = train_test_split(
         X,
         y,
@@ -148,26 +147,29 @@ if __name__ == "__main__":
     test_dataset = TimeSeriesDataset(test_X, test_y, training_length, forecast_window)
     test_dataloader = DataLoader(test_dataset, batch_size = config["batch_size"], shuffle = True)
 
-    EPOCH = config["max_epochs"]
+    MAX_EPOCH = config["max_epochs"]
     FEATURES = 5
     NUM_LAYERS = config["num_layers"]
     DROPOUT = config["dropout"]
     LR = config["lr"]
+    NUM_HEADS = config["num_heads"]
 
     model = Transformer(feature_size = FEATURES, 
                     num_layers = NUM_LAYERS,
-                    dropout = DROPOUT
+                    dropout = DROPOUT,
+                    nheads = NUM_HEADS
                    ).double()
     
     optimizer = torch.optim.Adam(model.parameters(), lr = LR)
     criterion = nn.MSELoss()
-    for epoch in range(EPOCH):
-        print("%d,%d,%d,%d,%.2f,%.4f," % (epoch, 
+    for epoch in range(MAX_EPOCH):
+        print("%d,%d,%d,%d,%.2f,%.4f,%d" % (epoch, 
                            training_length, 
                            forecast_window,
                            NUM_LAYERS,
                            DROPOUT,
-                           LR
+                           LR,
+                           NUM_HEADS
                            ), end = "")
         
         avg_miss = 0.0
@@ -191,4 +193,8 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
             epoch_loss += loss.detach().item()
-        print("%d, %4.4f" % (epoch, epoch_loss / (batch + 1)))
+        print("%4.4f,%4.4f,%4.4f,%4.4f" % (epoch_loss / (batch + 1),
+                                              avg_miss / (batch + 1),
+                                              avg_pred / (batch + 1),
+                                              avg_target / (batch + 1)
+                                              ))

@@ -1,0 +1,1 @@
+Epoch,training_length,forecast_window,num_layers,dropout,lr,nheads,epoch_loss,avg_miss,avg_pred,avg_target

@@ -7,7 +7,7 @@ do
         do
             for d in 0.0 0.1 0.2
             do
-                for nh 1 4 8
+                for nh 1 5
                 do
                     for tl in 24 48 
                     do
