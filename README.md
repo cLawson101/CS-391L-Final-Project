@@ -21,5 +21,7 @@ Files of interest - Modeling:
         - Contains the original base transformer to make sure it works
     - south_central_wz_nn_and_dl_exploration.ipynb
         - Testing different hypertuning parameters to see if we get better results
+    - south_central_wz_transformer_experimentation.ipynb
+        - Additional experimentatoin with the transformer model
 - Prophet:
     - south_central_wz_transformer-prophet.ipynb
